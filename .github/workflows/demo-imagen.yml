@@ -1,0 +1,43 @@
+name: Demo - secreto dentro de la imagen
+
+# Demo del Tema 6 (solo docente). Muestra que un valor pasado con ARG/ENV al construir queda dentro de la imagen.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  demo:
+    name: Secreto dentro de la imagen
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dos Dockerfile, uno recibe el token al construir
+        run: |
+          mkdir mal bien
+          printf 'FROM python:3.12-slim\nARG API_TOKEN\nENV API_TOKEN=$API_TOKEN\n' > mal/Dockerfile
+          printf 'FROM python:3.12-slim\n' > bien/Dockerfile
+          echo "--- mal/Dockerfile"; cat mal/Dockerfile
+          echo "--- bien/Dockerfile"; cat bien/Dockerfile
+
+      - name: Construir las dos imágenes
+        run: |
+          docker build -q --build-arg API_TOKEN=tok_demo_0000 -t demo-mal mal
+          docker build -q -t demo-bien bien
+
+      - name: "Quien descarga la imagen mal: docker history"
+        run: docker history --no-trunc --format '{{.CreatedBy}}' demo-mal | head -n 3
+
+      - name: "Quien descarga la imagen mal: docker image inspect"
+        run: docker image inspect demo-mal --format '{{json .Config.Env}}'
+
+      - name: "La imagen bien: el token no está; llega al arrancar con -e"
+        run: docker image inspect demo-bien --format '{{json .Config.Env}}'
+
+      - name: "Con un secreto de GitHub: el log lo tapa, la imagen lo guarda"
+        env:
+          TOKEN: ${{ secrets.DEMO_TOKEN }}
+        run: |
+          docker build -q --build-arg API_TOKEN="$TOKEN" -t demo-secreto mal
+          docker image inspect demo-secreto --format '{{json .Config.Env}}'
+          docker image inspect demo-secreto --format '{{json .Config.Env}}' | rev
