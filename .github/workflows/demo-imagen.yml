@@ -22,22 +22,22 @@ jobs:
 
       - name: Construir las dos imágenes
         run: |
-          docker build -q --build-arg API_TOKEN=tok_demo_0000 -t demo-mal mal
+          docker build -q --build-arg API_TOKEN=tok_imagen_4321 -t demo-mal mal
           docker build -q -t demo-bien bien
 
       - name: "Quien descarga la imagen mal: docker history"
         run: docker history --no-trunc --format '{{.CreatedBy}}' demo-mal | head -n 3
 
       - name: "Quien descarga la imagen mal: docker image inspect"
-        run: docker image inspect demo-mal --format '{{json .Config.Env}}'
+        run: docker image inspect demo-mal --format '{{range .Config.Env}}{{println .}}{{end}}' | grep API_TOKEN
 
       - name: "La imagen bien: el token no está; llega al arrancar con -e"
-        run: docker image inspect demo-bien --format '{{json .Config.Env}}'
+        run: docker image inspect demo-bien --format '{{range .Config.Env}}{{println .}}{{end}}' | grep API_TOKEN || echo "API_TOKEN no está en la imagen"
 
       - name: "Con un secreto de GitHub: el log lo tapa, la imagen lo guarda"
         env:
           TOKEN: ${{ secrets.DEMO_TOKEN }}
         run: |
           docker build -q --build-arg API_TOKEN="$TOKEN" -t demo-secreto mal
-          docker image inspect demo-secreto --format '{{json .Config.Env}}'
-          docker image inspect demo-secreto --format '{{json .Config.Env}}' | rev
+          docker image inspect demo-secreto --format '{{range .Config.Env}}{{println .}}{{end}}' | grep API_TOKEN
+          docker image inspect demo-secreto --format '{{range .Config.Env}}{{println .}}{{end}}' | grep API_TOKEN | rev
