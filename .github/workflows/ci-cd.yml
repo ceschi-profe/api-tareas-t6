@@ -105,9 +105,9 @@ jobs:
           APP_ENV: ${{ vars.APP_ENV || 'staging' }}
           API_TOKEN: ${{ secrets.API_TOKEN }}
         run: |
-          docker rm -f $(docker ps -aq)
+          docker ps -aq | xargs -r docker rm -f
           docker run -d --name api -p 8080:8000 -e APP_ENV -e API_TOKEN "$IMAGEN"       
-          
+
       - name: Smoke test
         run: bash scripts/smoke.sh http://localhost:8080
 
