@@ -1,5 +1,6 @@
 name: CI/CD
-
+permissions:
+  contents: read
 on:
   push:
     branches: [main]
@@ -10,6 +11,9 @@ on:
 jobs:
   ci:
     name: CI
+    permissions:
+      contents: read
+      packages: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -80,6 +84,9 @@ jobs:
 
   staging:
     name: Desplegar en staging
+    permissions:
+      contents: read
+      packages: read
     needs: empaquetar
     runs-on: ubuntu-latest
     environment: staging
@@ -88,8 +95,10 @@ jobs:
 
       - name: Iniciar sesión en GHCR
         env:
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: echo "$TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          IMAGEN: ${{ needs.empaquetar.outputs.imagen }}
+          APP_ENV: ${{ vars.APP_ENV || 'staging' }}
+          API_TOKEN: ${{ secrets.API_TOKEN }}
+        run: docker run -d --name api -p 8080:8000 -e APP_ENV -e API_TOKEN "$IMAGEN"
 
       - name: Desplegar contenedor
         env:
@@ -101,6 +110,9 @@ jobs:
 
   produccion:
     name: Desplegar en producción
+    permissions:
+      contents: read
+      packages: read
     needs: [empaquetar, staging]
     runs-on: ubuntu-latest
     # El environment "produccion" tiene un revisor obligatorio: el job espera la aprobación.
@@ -110,8 +122,10 @@ jobs:
 
       - name: Iniciar sesión en GHCR
         env:
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: echo "$TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          IMAGEN: ${{ needs.empaquetar.outputs.imagen }}
+          APP_ENV: ${{ vars.APP_ENV || 'produccion' }}
+          API_TOKEN: ${{ secrets.API_TOKEN }}
+        run: docker run -d --name api -p 8080:8000 -e APP_ENV -e API_TOKEN "$IMAGEN"
 
       - name: Desplegar contenedor
         env:
