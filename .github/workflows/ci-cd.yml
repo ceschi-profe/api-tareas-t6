@@ -96,19 +96,18 @@ jobs:
 
       - name: Iniciar sesión en GHCR
         env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+         
+      - name: Desplegar contenedor
+        env:
           IMAGEN: ${{ needs.empaquetar.outputs.imagen }}
           APP_ENV: ${{ vars.APP_ENV || 'staging' }}
           API_TOKEN: ${{ secrets.API_TOKEN }}
         run: |
-          docker run -d --name api -p 8080:8000 -e APP_ENV -e API_TOKEN "$IMAGEN"
-
-      - name: Desplegar contenedor
-        env:
-          IMAGEN: ${{ needs.empaquetar.outputs.imagen }}
-        run:  |          
-          docker run -d --name api2 -p 8080:8000 -e APP_ENV=staging "$IMAGEN"
+          docker rm -f $(docker ps -aq)
+          docker run -d --name api -p 8080:8000 -e APP_ENV -e API_TOKEN "$IMAGEN"       
           
-
       - name: Smoke test
         run: bash scripts/smoke.sh http://localhost:8080
 
