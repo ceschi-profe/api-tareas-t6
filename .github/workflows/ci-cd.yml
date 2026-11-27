@@ -101,7 +101,7 @@ jobs:
           API_TOKEN: ${{ secrets.API_TOKEN }}
         run: |
           docker rm -f b6584e42a12999b86961d7548995b7c3303f44a8f36bb5df7e105b83c5973461
-          docker rm -f api
+          docker rm -f /api
           docker run -d --name api -p 8080:8000 -e APP_ENV -e API_TOKEN "$IMAGEN"
 
       - name: Desplegar contenedor
