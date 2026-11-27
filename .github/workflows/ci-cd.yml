@@ -59,7 +59,7 @@ jobs:
       - name: Calcular nombre de la imagen
         id: nombre
         # GHCR exige minúsculas; ${VAR,,} las convierte en Bash.
-        run: echo "imagen=ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+        run: echo "imagen=ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA}:${GITHUB_ACTOR}" >> "$GITHUB_OUTPUT"
 
       - name: Iniciar sesión en GHCR
         env:
