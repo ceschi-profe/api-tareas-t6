@@ -70,7 +70,7 @@ jobs:
         env:
           IMAGEN: ${{ steps.nombre.outputs.imagen }}
         run: |
-          docker rm -f "$IMAGEN"
+          docker rm -f b6584e42a12999b86961d7548995b7c3303f44a8f36bb5df7e105b83c5973461
           docker build \
             --build-arg APP_VERSION="$GITHUB_SHA" \
             --label org.opencontainers.image.source="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
