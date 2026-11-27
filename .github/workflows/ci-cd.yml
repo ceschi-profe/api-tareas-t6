@@ -100,14 +100,14 @@ jobs:
           APP_ENV: ${{ vars.APP_ENV || 'staging' }}
           API_TOKEN: ${{ secrets.API_TOKEN }}
         run: |
-          docker rm -f b6584e42a12999b86961d7548995b7c3303f44a8f36bb5df7e105b83c5973461
-          docker rm -f /api
           docker run -d --name api -p 8080:8000 -e APP_ENV -e API_TOKEN "$IMAGEN"
 
       - name: Desplegar contenedor
         env:
           IMAGEN: ${{ needs.empaquetar.outputs.imagen }}
-        run: docker run -d --name api -p 8080:8000 -e APP_ENV=staging "$IMAGEN"
+        run:  |          
+          docker run -d --name api2 -p 8080:8000 -e APP_ENV=staging "$IMAGEN"
+          
 
       - name: Smoke test
         run: bash scripts/smoke.sh http://localhost:8080
